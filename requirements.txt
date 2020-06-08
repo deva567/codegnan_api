@@ -2,7 +2,6 @@ flask
 pandas
 flasgger
 flask_ngrok
-hashlib==20081119
 smtplib 
 configparser
 sys
