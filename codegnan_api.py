@@ -1,5 +1,3 @@
-
-
 from flask import Flask, request
 import pandas as pd
 import flasgger
@@ -31,7 +29,7 @@ logging.info('Flask_API imported necessary libraries into program.')
 app=Flask(__name__)
 #Intializing flasgger which helps to creating the better interaction between enduser and Flask API 
 Swagger(app)
-#run_with_ngrok(app)
+run_with_ngrok(app)
 
 def create_database():
     """This function will be used for intializing Database and
@@ -59,7 +57,6 @@ def admin_access(username):
 
     try:
         dict1={}
-        print(username)
         conn = sql.connect('database.db')
         cur = conn.cursor()
         query="select * from users1"
@@ -69,7 +66,6 @@ def admin_access(username):
         for row in result.description:
             column_names.append(row[0])
         result = result.fetchall()
-        print(result)
         for res in range(len(result)):
             temp_dict = {}
             for col in range(len(column_names)):
@@ -85,38 +81,6 @@ def admin_access(username):
     return return_list
 
 
-def otp_access(username):
-    """This function can be used for validating OTP
-       while changing password
-    """
-
-    try:
-        dict1={}
-        print(username)
-        conn = sql.connect('database.db')
-        cur = conn.cursor()
-        query=f"select * from users1 where username='{username}'"
-        result = cur.execute(query)
-        column_names = []
-        return_list = []
-        for row in result.description:
-            column_names.append(row[0])
-        result = result.fetchall()
-        print(result)
-        for res in range(len(result)):
-            temp_dict = {}
-            for col in range(len(column_names)):
-                temp_dict.update({column_names[col]:result[res][col]})
-            return_list.append(temp_dict)
-            msg="fetched details successfully."
-            logging.info("fetched  %s details successfully. ",username)
-    except:
-        msg="Error while fetchind details"
-        logging.info("Error while fetching  %s details. ",username)
-    finally:
-        conn.close()
-    return return_list
-
 
 
 def fetch_details(username):
@@ -125,7 +89,6 @@ def fetch_details(username):
     """
     try:
         dict1={}
-        print(username)
         conn = sql.connect('database.db')
         cur = conn.cursor()
         query=f"select username,password,fullname,email,mobilenumber from users1 where username='{username}'"
@@ -135,7 +98,6 @@ def fetch_details(username):
         for row in result.description:
             column_names.append(row[0])
         result = result.fetchall()
-        print(result)
         for res in range(len(result)):
             temp_dict = {}
             for col in range(len(column_names)):
@@ -151,26 +113,6 @@ def fetch_details(username):
     return return_list
 
 
-def update_otp(username,otp):
-
-    """ This function will update OTP before sending mail to enduser 
-        for validation purpose
-    """
-
-    try:
-        conn = sql.connect('database.db')
-        cur = conn.cursor()
-        update_query=f"update users1 set otp={otp} where username='{username}'"
-        update = cur.execute(update_query)
-        conn.commit()
-        logging.info("OTP updated in the database based on username. ")
-        msg="OTP updated in the database based on username."
-    except:
-        logging,info("OTP Updation problem exists")
-        msg="OTP Updation problem exists"
-    finally:
-        conn.close()
-    return msg
 
 def update_password(username,password):
     """ This function can be update password of enduser based on username 
@@ -193,28 +135,7 @@ def update_password(username,password):
     return msg
 
 
-def send_mail(email_id,OTP):
-    """ This function will be sending the OTP mails to enduser's registered mail id  
-    NOTE: The Mail id should be valid 
-    """
-    logging.info("The mail has been set to user with OTP")
- 
-    s = smtplib.SMTP('smtp.gmail.com', 587) 
-    s.ehlo()
-    # start TLS for security 
-    s.starttls() 
 
-    # Authentication 
-    s.login(mail_id,mail_password) 
-    logging.info("The user Authentication is verified.")
-    message = str(OTP)
-
-    # sending the mail 
-    s.sendmail(mail_id, email_id, message) 
-
-    # terminating the session 
-    s.quit() 
-    logging.info("The mail has been sent to user with OTP.")
 
 
 @app.route('/')
@@ -244,7 +165,7 @@ def username_availabity():
         username=request.args.get("username")
 
         user_details=fetch_details(username)
-        print(user_details[0]['username'])
+
         user_name=user_details[0]['username']
         if str(username)==str(user_name):
             logging.info(" %s already taken kindly choose another one .",username)
@@ -335,17 +256,12 @@ def login():
         username=request.args.get("username")
         password=request.args.get("password")
         user_details=fetch_details(username)
-        print(user_details[0]['password'])
         hashed=user_details[0]['password']
         username_key=user_details[0]['username']
-
-
-        
 
         if username==username_key and hashed==hashlib.md5(password.encode()).hexdigest():
             user_details=fetch_details(username)
             dict1 = {'result':user_details}
-            print(dict1)
         else:
             dict1={"Error":"Invalid  username or password , kindly check ."}
     except IndexError:
@@ -382,17 +298,15 @@ def extract():
         username=request.args.get("username")
         password=request.args.get("password")
         user_details=fetch_details(username)
-        print(user_details[0]['password'])
         hashed=user_details[0]['password']
         username_key=user_details[0]['username']
 
         if username==admin_name:
 
-
             if username==username_key and hashed==hashlib.md5(password.encode()).hexdigest():
                 user_details=admin_access(username)
                 dict1 = {'result':user_details}
-                print(dict1)
+    
             else:
                 dict1={"Error":"Invalid admin username or admin password , kindly check ."}
         else:
@@ -404,41 +318,7 @@ def extract():
     return Response(json.dumps(dict1),  mimetype='application/json')
     
     
-@app.route('/forgot_password',methods=["POST"])
-def forgot_password():
-    """ Forgot Password
-    This is using for forgot password.
-    ---
-    parameters: 
-      - name: username
-        in: query
-        type: string
-        required: true
-    responses:
-        200:
-            description: The output returns message whether mail has been sent or not
-    
-    """ 
-    OTP=randint(10000,100000)
-    print(OTP)
-    logging.info("OTP generated successfully. ")
-    username=request.args.get("username")
-    try:
 
-        user_details=fetch_details(username)
-        email_id=user_details[0]['email']
-
-
-
-        update_otp(username,OTP)
-        send_mail(email_id,OTP)
-        logging.info("sendmail function called. ")
-        msg="Mail has been sent to Registered mail id."
-    except IndexError:
-        logging.info("%s username details not found kindly enter valid Username. ",username)
-        msg=f"{username} details not found kindly enter valid Username."
-
-    return msg
 
 @app.route('/change_password',methods=["POST"])
 def change_password():
@@ -452,7 +332,7 @@ def change_password():
         required: true
       - name: OTP
         in: query
-        type: number
+        type: string
         required: true
       - name: new_password
         in: query
@@ -468,21 +348,9 @@ def change_password():
     new_password=request.args.get("new_password")
     hashed_password = hashlib.md5(new_password.encode()).hexdigest() 
 
-    user_details=otp_access(username)
-    print("the otp in  db")
 
-    print(user_details[0]['otp'])
-    otp=user_details[0]['otp']
-    if str(otp)==str(validate_otp):
+    if str(username)==str(validate_otp):
             msg=update_password(username,hashed_password)
-            #This function calling makes the user use OTP until password gets changed after that validity of OTP will be expired.
-            new_otp=randint(10000,100000)
-            # This will checks the new generated OTP and old OTP
-            if str(otp)==str(new_otp):
-                new_otp=randint(10000,100000)
-                update_otp(username,new_otp)
-            else:
-                update_otp(username,new_otp)
 
     else:
         msg="Something went wrong check the OTP or Username!!!!"
@@ -496,6 +364,6 @@ if __name__=='__main__':
 
     create_database() #Intializing Database 
     logging.info("Database Intialized successfully")
-    app.run(debug=True) #Running our FLASK APP
+    app.run() #Running our FLASK APP
     
     
