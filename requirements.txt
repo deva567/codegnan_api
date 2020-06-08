@@ -2,11 +2,8 @@ flask
 pandas
 flasgger
 flask_ngrok
-json
 hashlib
 smtplib 
-random
-logging
 configparser
 sys
 Werkzeug
