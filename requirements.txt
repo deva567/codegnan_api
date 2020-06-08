@@ -2,8 +2,5 @@ flask
 pandas
 flasgger
 flask_ngrok
-smtplib 
-configparser
-sys
 Werkzeug
 gunicorn
