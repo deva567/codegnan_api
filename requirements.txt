@@ -2,7 +2,6 @@ flask
 pandas
 flasgger
 flask_ngrok
-sqlite3
 json
 hashlib
 smtplib 
