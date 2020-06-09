@@ -337,7 +337,7 @@ def change_Password():
             key=apikey.read().replace('\n', '')
         if request.headers.get('API_KEY') == key:
             if str(UserName)==str(validate_otp):
-                    msg=update_Password(username,hashed_password)
+                    msg=update_Password(UserName,hashed_Password)
                     #This function calling makes the user use OTP until Password gets changed after that validity of OTP will be expired.
                     new_otp=randint(10000,100000)
                     # This will checks the new generated OTP and old OTP
