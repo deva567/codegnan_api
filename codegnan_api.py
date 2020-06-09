@@ -1,4 +1,4 @@
- 
+  
 from flask import Flask, request
 import pandas as pd
 import flasgger
@@ -13,6 +13,7 @@ import smtplib
 from random import randint
 import configparser
 import sys
+
 
 #Intializing the config file through the commandline argument
 config = configparser.ConfigParser()
@@ -34,24 +35,18 @@ def create_database():
     """
     try:
         conn = sql.connect('database.db')
-        logging.info("Opened database successfully.")
-
         conn.execute('CREATE TABLE  IF NOT EXISTS users1(UserName TEXT PRIMARY KEY, Password TEXT, FullName TEXT, Email TEXT ,otp INT)')
-        logging.info("Table created successfully.")
         msg="Database connected."
     except:
-        logging.error("Database connectivity error occured.")
         msg="Database Connection issue ."
 
     finally:
         conn.close()
-        logging.info("Connection closed")
     return msg 
 
 def admin_access(UserName):
     """ This function can used by only ADMIN (vennam)
     """
-
     try:
         dict1={}
         print(UserName)
@@ -71,10 +66,8 @@ def admin_access(UserName):
                 temp_dict.update({column_names[col]:result[res][col]})
             return_list.append(temp_dict)
             msg="fetched details successfully."
-            logging.info("fetched  all  details successfully. ")
     except:
         msg="Error while fetchind details"
-        logging.info("Error while fetching all details. ")
     finally:
         conn.close()
     return return_list
@@ -104,10 +97,8 @@ def otp_access(UserName):
                 temp_dict.update({column_names[col]:result[res][col]})
             return_list.append(temp_dict)
             msg="fetched details successfully."
-            logging.info("fetched  %s details successfully. ",UserName)
     except:
         msg="Error while fetchind details"
-        logging.info("Error while fetching  %s details. ",UserName)
     finally:
         conn.close()
     return return_list
@@ -137,10 +128,8 @@ def fetch_details(UserName):
                 temp_dict.update({column_names[col]:result[res][col]})
             return_list.append(temp_dict)
             msg="fetched details successfully."
-            logging.info("fetched  %s details successfully. ",UserName)
     except:
         msg="Error while fetchind details"
-        logging.info("Error while fetching  %s details. ",UserName)
     finally:
         conn.close()
     return return_list
@@ -158,18 +147,12 @@ def del_user(UserName):
         delete_query=f"Delete from users1 where UserName='{UserName}'"
         update = cur.execute(delete_query)
         conn.commit()
-        logging.info("Deleted UserName from database based on UserName. ")
         msg="Deleted UserName from database based on UserName."
     except:
-        logging,info("Deletion problem exists")
         msg="UserName deletion problem exists"
     finally:
         conn.close()
     return msg
-
-
-
-
 
 def update_Password(UserName,Password):
     """ This function can be update Password of enduser based on UserName 
@@ -182,17 +165,12 @@ def update_Password(UserName,Password):
         update_query=f"update users1 set Password='{Password}' where UserName='{UserName}'"
         update = cur.execute(update_query)
         conn.commit()
-        logging.info("Password updated successfully in the database based on UserName. ")
         msg="Password updated successfully in the database based on UserName."
     except:
-        logging.info("Password Updation problem exists")
         msg="Password Updation problem exists"
     finally:
         conn.close()
     return msg
-
-
-
 
 @app.route('/')
 def welcome():
@@ -200,8 +178,6 @@ def welcome():
 
 @app.route('/UserNameAvailabity',methods=["GET"])
 def UserName_availabity():
-
-
         
     """Let's Check the UserName available or not
     This is used for cheching avaliablity of UserName
@@ -219,15 +195,11 @@ def UserName_availabity():
     try:
     
         UserName=request.args.get("UserName")
-
         user_details=fetch_details(UserName)
-        print(user_details[0]['UserName'])
         user_name=user_details[0]['UserName']
         if str(UserName)==str(user_name):
-            logging.info(" %s already taken kindly choose another one .",UserName)
             msg="UserName is already taken kindly choose another one"
     except IndexError:
-        logging.info(" %s is available .",UserName)
         msg="UserName is available."
     return msg
     
@@ -260,8 +232,6 @@ def signup():
             description: The output returns whether the user details successfully added or not
         
     """
-
-    
     try:
         UserName=request.args.get("UserName")
         Password=request.args.get("Password")
@@ -273,10 +243,8 @@ def signup():
             cur.execute("INSERT INTO users1 (UserName,Password,FullName,Email,otp) VALUES (?,?,?,?,NULL)",(UserName,hashed_Password,FullName,Email) )
             con.commit()
             msg = f"{UserName} details are stored successfully"
-            logging.info(" %s details are stored in Database .",UserName)
     except:
         msg = f"kindly go and check UserName_availabity end_point for current {UserName}."
-        logging.info(" kindly go and check UserName_availabity end_point for  %s.",UserName)
 
       
     finally:
@@ -307,27 +275,18 @@ def login():
         UserName=request.args.get("UserName")
         Password=request.args.get("Password")
         user_details=fetch_details(UserName)
-        print(user_details[0]['Password'])
         hashed=user_details[0]['Password']
         UserName_key=user_details[0]['UserName']
-
-
-        
 
         if UserName==UserName_key and hashed==hashlib.md5(Password.encode()).hexdigest():
             user_details=fetch_details(UserName)
             dict1 = {'result':user_details}
-            print(dict1)
         else:
             dict1={"Error":"Invalid  UserName or Password , kindly check ."}
     except IndexError:
         dict1={"Error":"Invalid  UserName and UserName not available in Database."}
 
     return Response(json.dumps(dict1),  mimetype='application/json')
-
-
-
-
 
     
 @app.route('/Admin',methods=["GET"])
@@ -354,7 +313,6 @@ def extract():
         UserName=request.args.get("UserName")
         Password=request.args.get("Password")
         user_details=fetch_details(UserName)
-        print(user_details[0]['Password'])
         hashed=user_details[0]['Password']
         UserName_key=user_details[0]['UserName']
 
@@ -362,7 +320,6 @@ def extract():
             if UserName==UserName_key and hashed==hashlib.md5(Password.encode()).hexdigest():
                 user_details=admin_access(UserName)
                 dict1 = {'result':user_details}
-                print(dict1)
             else:
                 dict1={"Error":"Invalid admin UserName or admin Password , kindly check ."}
         else:
@@ -412,7 +369,7 @@ def change_Password():
         with open('api.key', 'r') as apikey:
             key=apikey.read().replace('\n', '')
         if request.headers.get('API_KEY') == key:
-           if str(username)==str(validate_otp):
+            if str(username)==str(validate_otp):
                     msg=update_password(username,hashed_password)
                     #This function calling makes the user use OTP until Password gets changed after that validity of OTP will be expired.
                     new_otp=randint(10000,100000)
@@ -424,7 +381,6 @@ def change_Password():
                         update_otp(UserName,new_otp)
             else:
                 msg="Something went wrong check the OTP or UserName!!!!"
-                logging.info("Something went wrong check the OTP or UserName!!!!")
         else:
             msg="Enter correct API KEY for Authentication."
     except IndexError:
@@ -481,10 +437,7 @@ def delete_UserName():
 
 
 if __name__=='__main__':
-    logging.info("Started program.")
-
     create_database() #Intializing Database 
-    logging.info("Database Intialized successfully")
     app.run(debug=True) #Running our FLASK APP
     
     
