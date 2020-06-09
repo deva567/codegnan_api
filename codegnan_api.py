@@ -344,7 +344,7 @@ def change_Password():
         required: true
       - name: OTP
         in: query
-        type: number
+        type: string
         required: true
       - name: NewPassword
         in: query
