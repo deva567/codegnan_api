@@ -332,11 +332,13 @@ def change_Password():
         UserName=request.args.get("UserName")
         validate_otp=request.args.get("OTP")    
         NewPassword=request.args.get("NewPassword")
+        user_details=fetch_details(UserName)
+        UserName_key=user_details[0]['UserName']
         hashed_Password = hashlib.md5(NewPassword.encode()).hexdigest() 
         with open('api.key', 'r') as apikey:
             key=apikey.read().replace('\n', '')
         if request.headers.get('API_KEY') == key:
-            if str(UserName)==str(validate_otp):
+            if str(UserName)==str(UserName_key) and str(UserName_key)==str(validate_otp):
                     msg=update_Password(UserName,hashed_Password)
             else:
                 msg="Something went wrong check the OTP or UserName!!!!"
