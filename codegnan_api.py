@@ -72,39 +72,6 @@ def admin_access(UserName):
         conn.close()
     return return_list
 
-
-def otp_access(UserName):
-    """This function can be used for validating OTP
-       while changing Password
-    """
-
-    try:
-        dict1={}
-        print(UserName)
-        conn = sql.connect('database.db')
-        cur = conn.cursor()
-        query=f"select * from users1 where UserName='{UserName}'"
-        result = cur.execute(query)
-        column_names = []
-        return_list = []
-        for row in result.description:
-            column_names.append(row[0])
-        result = result.fetchall()
-        print(result)
-        for res in range(len(result)):
-            temp_dict = {}
-            for col in range(len(column_names)):
-                temp_dict.update({column_names[col]:result[res][col]})
-            return_list.append(temp_dict)
-            msg="fetched details successfully."
-    except:
-        msg="Error while fetchind details"
-    finally:
-        conn.close()
-    return return_list
-
-
-
 def fetch_details(UserName):
     """ This function fetch all details of enduser based on UserName and \
         returns the details as list
@@ -370,7 +337,7 @@ def change_Password():
             key=apikey.read().replace('\n', '')
         if request.headers.get('API_KEY') == key:
             if str(UserName)==str(validate_otp):
-                    msg=update_password(username,hashed_password)
+                    msg=update_Password(username,hashed_password)
                     #This function calling makes the user use OTP until Password gets changed after that validity of OTP will be expired.
                     new_otp=randint(10000,100000)
                     # This will checks the new generated OTP and old OTP
